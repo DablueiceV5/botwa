@@ -1,0 +1,111 @@
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
+const express = require('express');
+const moment = require('moment');
+
+// Membuat server Express untuk menjalankan bot
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Inisialisasi client WhatsApp dengan Local Authentication
+const client = new Client({
+    authStrategy: new LocalAuth(),
+});
+
+// Informasi akun dan bot
+const owner = "Nama Pemilik Bot";
+const botInfo = "Bot ini adalah bot WhatsApp yang dibuat untuk memudahkan pengguna.";
+
+// Menampilkan QR Code untuk login
+client.on('qr', (qr) => {
+    qrcode.generate(qr, { small: true });
+});
+
+// Setelah bot siap, print siap terhubung
+client.on('ready', () => {
+    console.log('Bot siap digunakan!');
+});
+
+// Data awal
+let userBalance = 1000; // Saldo awal
+let userLimit = 10; // Limit awal untuk non-premium
+let isPremium = false; // Status premium user
+let gameCurrency = 0; // Mata uang game
+
+// Menangani pesan masuk
+client.on('message', message => {
+    const msg = message.body.toLowerCase();
+    
+    // Perintah /rate
+    if (msg === '/rate') {
+        message.reply('Harga Blue Gem Lock: 50K, Harga Diamond Lock: 100K');
+    }
+    
+    // Perintah /info
+    if (msg === '/info') {
+        message.reply(`Owner: ${owner}\nBot Info: ${botInfo}`);
+    }
+    
+    // Perintah /help
+    if (msg === '/help') {
+        message.reply('Daftar Perintah:\n1. /rate - Menampilkan harga terkini\n2. /info - Informasi bot\n3. /help - Daftar perintah\n4. /status - Status bot\n5. /premium - Info premium\n6. /game - Mainkan game\n7. /limit - Limit penggunaan bot\n8. /balance - Mengecek saldo\n9. /time - Jam Realtime\n10. /qt - Quotes dan motivasi');
+    }
+    
+    // Perintah /status
+    if (msg === '/status') {
+        message.reply('Bot aktif dan siap digunakan!');
+    }
+
+    // Perintah /premium
+    if (msg === '/premium') {
+        message.reply('Beli Premium seharga 15K untuk penggunaan bot secara bebas.');
+    }
+
+    // Perintah /game
+    if (msg === '/game') {
+        message.reply('Game tersedia! Gunakan saldo untuk bermain.');
+    }
+
+    // Perintah /limit
+    if (msg === '/limit') {
+        if (isPremium) {
+            message.reply('Limit penggunaan: Unlimited (Premium)');
+        } else {
+            message.reply('Limit penggunaan: 10x (Non-Premium)');
+        }
+    }
+
+    // Perintah /balance
+    if (msg === '/balance') {
+        message.reply(`Saldo digital Anda: ${userBalance} coins`);
+    }
+
+    // Perintah /time
+    if (msg === '/time') {
+        const time = moment().format('HH:mm:ss');
+        message.reply(`Waktu Realtime: ${time}`);
+    }
+
+    // Perintah /qt (Quotes dan Motivasi)
+    if (msg === '/qt') {
+        const quotes = [
+            '“Success is not final, failure is not fatal: It is the courage to continue that counts.” - Winston Churchill',
+            '“The only way to do great work is to love what you do.” - Steve Jobs',
+            '“Believe you can and you’re halfway there.” - Theodore Roosevelt'
+        ];
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        message.reply(randomQuote);
+    }
+});
+
+// Menjalankan Express Server
+app.get('/', (req, res) => {
+    res.send('Bot WhatsApp Aktif!');
+});
+
+app.listen(port, () => {
+    console.log(`Server berjalan di port ${port}`);
+});
+
+// Mulai bot WhatsApp
+client.initialize();
